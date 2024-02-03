@@ -2,35 +2,44 @@
 using RandomForest;
 using Test;
 
-SimpleTest.Start();
 var datas = DataReader.Reader.GetData();
 var testdata = datas.Where(x=>x.Model == 1).ToList();
 
 DateTime start = new DateTime(2015, 1, 1);
-DateTime end = new DateTime(2015,5,1);
-testdata.ForEach(x=>x.FilterByTime(end));
-var testmachine = testdata[0];
+//DateTime end = new DateTime(2015,6,11);
+Data testmachine = testdata[0];
+//testmachine.FilterByTime(end);
 
-List<Row> rows = new List<Row>();
-testmachine.Telemetries.ForEach(x =>
-{
-    var row = new Row() { Parameters = new List<double>() { x.Pressure, x.Rotate, x.Vibration, x.Volt, (x.DateTime - start).TotalHours }, Output = 0 };
-    var lastMaint = testmachine.Maints.LastOrDefault(m => m.DateTime < x.DateTime);
-    if (lastMaint == null) lastMaint = new Maint() { DateTime = start };
-    var nextFail = testmachine.Failures.FirstOrDefault(f => f.DateTime > x.DateTime);
-    if (nextFail != null)
-    {
-        var countErrors = testmachine.Errors.Count(er => er.DateTime > lastMaint.DateTime && er.DateTime < x.DateTime);
-        var timeOfLastMaint = (x.DateTime - lastMaint.DateTime).TotalHours;
-        var timeOfNextFailt = (nextFail.DateTime - x.DateTime).TotalHours;
-        row.Parameters.Add(countErrors);
-        row.Parameters.Add(timeOfLastMaint);
-        row.Output = timeOfNextFailt;
-        rows.Add(row);
-    }
-});
-Tree tree = new Tree(rows);
-List<double> realoutputs = rows.Select(x=>x.Output).ToList();
-List<double> forecastoutputs = rows.Select(x=>tree.GetForecast(x)).ToList();
+List<Row> rows = Parser.GetRows(testmachine, start);
+//Tree tree = new Tree(rows);
+Forest forest = new Forest(rows);
+
+//rows.Clear();
+
+
+/*testmachine = DataReader.Reader.GetData().Where(x=>x.Model == 1).ToList()[0]; 
+rows = Parser.GetRows(testmachine, start);
+Tree tree2 = new Tree(rows);*/
+
+var test = testmachine.Telemetries.FirstOrDefault(x => x.DateTime >  new DateTime(2015, 3, 15));
+Row row = Parser.GetRow(testmachine, test);
+Console.WriteLine("Real date next fail:" + start.AddHours(row.Output));
+Console.WriteLine("Forecast date next fail:" + start.AddHours(forest.GetForecast(row)));
+
+test = testmachine.Telemetries.FirstOrDefault(x => x.DateTime >  new DateTime(2015, 1, 25));
+ row = Parser.GetRow(testmachine, test);
+Console.WriteLine("Real date next fail:" + start.AddHours(row.Output));
+Console.WriteLine("Forecast date next fail:" + start.AddHours(forest.GetForecast(row)));
+
+test = testmachine.Telemetries.FirstOrDefault(x => x.DateTime >  new DateTime(2015, 6, 11));
+row = Parser.GetRow(testmachine, test);
+Console.WriteLine("Real date next fail:" + start.AddHours(row.Output));
+Console.WriteLine("Forecast date next fail:" + start.AddHours(forest.GetForecast(row)));
+
+test = testmachine.Telemetries.FirstOrDefault(x => x.DateTime >  new DateTime(2015, 8, 24));
+row = Parser.GetRow(testmachine, test);
+Console.WriteLine("Real date next fail:" + start.AddHours(row.Output));
+Console.WriteLine("Forecast date next fail:" + start.AddHours(forest.GetForecast(row)));
+
 
 var g = "fw";

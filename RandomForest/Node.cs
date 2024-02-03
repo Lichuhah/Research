@@ -80,4 +80,12 @@ public class Node
         if (row.Parameters[ParameterIndex] <= SeparationValue) return Left?.GetNodeForecast(row) ?? Forecast;
         else return Right?.GetNodeForecast(row) ?? Forecast;
     }
+
+    public int GetCount(int count)
+    {
+        count++;
+        if (Right != null) count = Right.GetCount(count);
+        if (Left != null) count = Left.GetCount(count);
+        return count;
+    }
 }
