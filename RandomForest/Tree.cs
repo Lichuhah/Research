@@ -6,11 +6,11 @@ public class Tree
 	public List<Row> Data { get; set; }
 	private int Limit { get; set; }
 
-	public Tree(List<Row> data, int limit=10)
+	public Tree(List<Row> data)
 	{
 		Random rnd = new Random(DateTime.UtcNow.Microsecond);
 		Data = data;
-		Limit = rnd.Next(2, limit);
+		Limit = rnd.Next(3, 6);
 		BuildTree();
 	}
 
@@ -26,6 +26,19 @@ public class Tree
 		return count;
 	}
 
+	public double GetMeanRelativeError(List<Row> data)
+	{
+		double RelError = 0.0; 
+		List<double> real = data.Select(x => x.Output).ToList();
+		List<double> forecasts = data.Select(x => GetForecast(x)).ToList();
+		for (var i = 0; i < real.Count; i++)
+		{
+			RelError += (real[i] > forecasts[i] ? real[i] / forecasts[i] : forecasts[i] / real[i]);
+		}
+
+		return RelError / real.Count();
+	}
+	
 	public void SetError(Stat stat)
 	{
 		double SquareError = 0.0; 
@@ -49,7 +62,17 @@ public class Tree
 	
 	private void BuildTree()
 	{
+		Random rnd = new Random(DateTime.UtcNow.Microsecond);
 		Root = new Node(Data);
+		/*int parNulls = rnd.Next(0, Data[0].Parameters.Count-3);
+		for (int i = 0; i < parNulls; i++)
+		{
+			int parIndex = rnd.Next(Data[0].Parameters.Count - 1);
+			Data.ForEach(d =>
+			{
+				d.Parameters[parIndex] = double.MaxValue;
+			});
+		}*/
 		int depth = 1;
 		_BuildTree(Root,depth);
 	}
