@@ -77,7 +77,7 @@ public class Reader
             Errors = errors.Where(x => x.MachineId == m.MachineId).OrderBy(x=>x.DateTime).ToList(),
             Failures = failures.Where(x => x.MachineId == m.MachineId).OrderBy(x=>x.DateTime).ToList(),
             Maints = maint.Where(x => x.MachineId == m.MachineId).OrderBy(x=>x.DateTime).ToList(),
-            Telemetries = telemetries.Where(x => x.MachineId == m.MachineId).OrderBy(x=>x.DateTime).ToList()
+            _Telemetries = telemetries.Where(x => x.MachineId == m.MachineId).OrderBy(x=>x.DateTime).ToList(),
         }).ToList();
     }
 }

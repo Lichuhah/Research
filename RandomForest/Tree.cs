@@ -6,11 +6,11 @@ public class Tree
 	public List<Row> Data { get; set; }
 	private int Limit { get; set; }
 
-	public Tree(List<Row> data)
+	public Tree(List<Row> data, int limit=100)
 	{
 		Random rnd = new Random(DateTime.UtcNow.Microsecond);
 		Data = data;
-		Limit = rnd.Next(3, 6);
+		Limit = limit;
 		BuildTree();
 	}
 
@@ -64,23 +64,15 @@ public class Tree
 	{
 		Random rnd = new Random(DateTime.UtcNow.Microsecond);
 		Root = new Node(Data);
-		/*int parNulls = rnd.Next(0, Data[0].Parameters.Count-3);
-		for (int i = 0; i < parNulls; i++)
-		{
-			int parIndex = rnd.Next(Data[0].Parameters.Count - 1);
-			Data.ForEach(d =>
-			{
-				d.Parameters[parIndex] = double.MaxValue;
-			});
-		}*/
 		int depth = 1;
 		_BuildTree(Root,depth);
 	}
 	
 	private void _BuildTree(Node root, int depth)
 	{
+		if(root == null) return;
 		if(root.IsTerminal) return;
-		if(depth == this.Limit) return;
+		if(depth == Limit) return;
 		root.GenerateNodes();
 		depth++;
 		_BuildTree(root.Right, depth);

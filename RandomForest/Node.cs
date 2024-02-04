@@ -21,7 +21,8 @@ public class Node
     
     private double GetForecast(List<Row> rows)
     {
-        return rows.Select(x => x.Output).Sum() / rows.Count;
+        double forecast = rows.Select(x => x.Output).Sum() / rows.Count;
+        return forecast;
     }
     
     private double GetImpurity(List<Row> rows)
@@ -35,6 +36,7 @@ public class Node
         double sum = 0.0;
         foreach (List<Row> rows in data)
         {
+            if (rows.Count == 0) return 0;
             sum += ((double)rows.Count / Data.Count) * GetImpurity(rows);
         }
 
@@ -43,35 +45,52 @@ public class Node
     
     private void GetBestSeparation()
     {
-        int parametersCount = Data[0].Parameters.Count;
+        List<int> valuableParameters = new List<int>();
+        for (var i = 0; i < Data[0].Parameters.Count; i++)
+        {
+            if(Data[0].Parameters[i] != -1) valuableParameters.Add(i);
+        }
         int imagesCount = Data.Count;
         double bestInformationGain = 0.0;
         
-        for (int i = 0; i < parametersCount; i++)
+        foreach (var valuableParameterIndex in valuableParameters)
         {
-            List<double> parameters = Data.Select(x => x.Parameters[i]).ToList();
+            List<double> parameters = Data.Select(x => x.Parameters[valuableParameterIndex]).ToList();
             for (int j = 0; j < imagesCount; j++)
             {
                 double gain = GetInformationGain(new List<List<Row>>()
                 {
-                    Data.Where(x => x.Parameters[i] <= parameters[j]).ToList(),
-                    Data.Where(x => x.Parameters[i] > parameters[j]).ToList()
+                    Data.Where(x => x.Parameters[valuableParameterIndex] <= parameters[j]).ToList(),
+                    Data.Where(x => x.Parameters[valuableParameterIndex] > parameters[j]).ToList()
                 });
                 if (gain > bestInformationGain)
                 {
                     bestInformationGain = gain;
-                    ParameterIndex = i;
+                    ParameterIndex = valuableParameterIndex;
                     SeparationValue = parameters[j];
                 }
             }
+        }
+
+        if (bestInformationGain == 0)
+        {
+            IsTerminal = true;
         }
     }
 
     public void GenerateNodes()
     {
         GetBestSeparation();
-        Left = new Node(Data.Where(x => x.Parameters[ParameterIndex] <= SeparationValue).ToList());
-        Right = new Node(Data.Where(x => x.Parameters[ParameterIndex] > SeparationValue).ToList());
+        if (!IsTerminal)
+        {
+            Left = new Node(Data.Where(x => x.Parameters[ParameterIndex] <= SeparationValue).ToList());
+            Right = new Node(Data.Where(x => x.Parameters[ParameterIndex] > SeparationValue).ToList());
+        }
+        else
+        {
+            Left = null;
+            Right = null;
+        }
     }
 
     public double GetNodeForecast(Row row)
